@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a2114">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EndócrinoVet">
+<meta name="description" content="Checklist da imersão EndócrinoVet — o passo a passo da Alê pra identificar e tratar as endocrinopatias com total confiança.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+<title>🐾 EndócrinoVet — Detetive da Endócrino</title>
+<style>
+  :root{
+    --ink:#05130c; --ground:#0a2114;
+    --card-a:#143f2b; --card-b:#0b271b;
+    --emerald:#12b981; --lime:#4ade80; --mint:#a7f3d0;
+    --gold:#f7c948; --gold2:#ffe08a;
+    --text:#eafff4; --dim:#8fb8a3; --locked:#31463c;
+    --line:rgba(74,222,128,.18); --red:#ef4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    color:var(--text); line-height:1.5; min-height:100vh; overflow-x:hidden;
+    background:radial-gradient(120% 80% at 50% -10%, #14512f 0%, var(--ground) 42%, var(--ink) 100%) fixed;
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='%234ade80' opacity='0.05'%3E%3Cellipse cx='45' cy='55' rx='9' ry='12'/%3E%3Cellipse cx='63' cy='47' rx='9' ry='13'/%3E%3Cellipse cx='82' cy='47' rx='9' ry='13'/%3E%3Cellipse cx='100' cy='55' rx='9' ry='12'/%3E%3Cellipse cx='72' cy='85' rx='24' ry='20'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:150px 150px}
+
+  /* ── ONBOARDING ── */
+  #onboarding{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(120% 80% at 50% -10%, #14512f 0%, var(--ground) 42%, var(--ink) 100%)}
+  .ob-card{max-width:390px;width:100%;text-align:center;border-radius:26px;padding:42px 28px 34px;position:relative;overflow:hidden;
+    background:linear-gradient(165deg,#164d30,#0a2417);border:2px solid var(--emerald);
+    box-shadow:0 0 70px rgba(74,222,128,.28),inset 0 1px 0 rgba(255,255,255,.22)}
+  .ob-card::before{content:"";position:absolute;left:0;right:0;top:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.1),transparent)}
+  .ob-pets{font-size:52px;letter-spacing:3px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.5))}
+  .ob-title{font-size:25px;font-weight:800;margin-top:14px;color:#fff;text-shadow:0 2px 16px rgba(74,222,128,.4);letter-spacing:-.3px}
+  .ob-brand{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:3px;color:var(--mint);margin-top:6px}
+  .ob-sub{font-size:14px;color:var(--dim);line-height:1.7;margin:16px 0 26px}
+  .ob-input{width:100%;padding:15px 18px;font-size:16px;font-family:inherit;color:var(--text);text-align:center;
+    background:rgba(0,0,0,.35);border:2px solid rgba(74,222,128,.35);border-radius:14px;outline:none;transition:.2s}
+  .ob-input:focus{border-color:var(--lime);box-shadow:0 0 18px rgba(74,222,128,.3)}
+  .ob-input::placeholder{color:#5f8571}
+  .ob-btn{width:100%;margin-top:14px;border:none;cursor:pointer;border-radius:15px;padding:16px;font-size:15px;font-weight:800;font-family:inherit;color:#05130b;
+    background:linear-gradient(160deg,var(--lime),var(--emerald));box-shadow:0 8px 22px rgba(74,222,128,.35),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .12s}
+  .ob-btn:active{transform:scale(.97)}
+
+  /* ── APP ── */
+  #app{display:none;position:relative;z-index:1;max-width:430px;margin:0 auto;padding:24px 14px 60px}
+  .brand{text-align:center;padding:2px 4px 14px}
+  .pets{font-size:40px;letter-spacing:2px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+  .logo{display:inline-flex;align-items:center;gap:9px;margin-top:8px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:3px;color:var(--mint)}
+  .cross{width:17px;height:17px;border-radius:5px;background:linear-gradient(160deg,var(--lime),var(--emerald));box-shadow:0 0 14px rgba(74,222,128,.6),inset 0 1px 0 rgba(255,255,255,.5);position:relative}
+  .cross::before,.cross::after{content:"";position:absolute;background:#04130b;border-radius:2px}
+  .cross::before{left:6.5px;top:3px;width:4px;height:11px}
+  .cross::after{top:6.5px;left:3px;width:11px;height:4px}
+  h1.title{font-size:27px;font-weight:800;letter-spacing:-.4px;margin-top:11px;color:#fff;text-shadow:0 2px 18px rgba(74,222,128,.35);text-wrap:balance}
+
+  .overall{background:linear-gradient(160deg,rgba(20,63,43,.85),rgba(11,39,27,.9));border:1px solid var(--line);border-radius:20px;padding:16px 18px;margin-bottom:18px;
+    box-shadow:0 12px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(167,243,208,.16);position:relative;overflow:hidden}
+  .overall::before{content:"";position:absolute;left:0;right:0;top:0;height:42%;background:linear-gradient(180deg,rgba(255,255,255,.09),transparent)}
+  .greet{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px;position:relative}
+  .greet b{font-size:15px}
+  .count{font-size:12.5px;color:var(--mint);font-weight:800;font-variant-numeric:tabular-nums}
+  .bar-track{height:13px;border-radius:20px;background:rgba(0,0,0,.35);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
+  .bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--emerald),var(--lime));box-shadow:0 0 16px rgba(74,222,128,.7),inset 0 1px 0 rgba(255,255,255,.5);transition:width .5s;position:relative}
+  .bar-fill.all-done{background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 0 18px rgba(247,201,72,.7)}
+
+  #trophy-banner{display:none;text-align:center;background:linear-gradient(160deg,#1c5a3c,#0e3625);border:1px solid var(--gold);border-radius:16px;padding:13px;margin-bottom:16px;color:var(--gold2);font-weight:800;font-size:14px;box-shadow:0 0 24px rgba(247,201,72,.2)}
+
+  .lessons{display:flex;flex-direction:column;gap:14px}
+  .lcard{background:linear-gradient(162deg,var(--card-a),var(--card-b));border:1px solid var(--line);border-radius:22px;overflow:hidden;position:relative;
+    box-shadow:0 14px 34px rgba(0,0,0,.45),inset 0 1px 0 rgba(167,243,208,.14)}
+  .lcard::before{content:"";position:absolute;left:0;right:0;top:0;height:38%;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent)}
+  .lcard.done{border-color:rgba(74,222,128,.4);box-shadow:0 14px 34px rgba(0,0,0,.4),0 0 22px rgba(74,222,128,.18),inset 0 1px 0 rgba(167,243,208,.2)}
+  .lcard.locked{opacity:.62;filter:saturate(.5)}
+  .lheader{display:flex;align-items:center;gap:13px;padding:16px 17px;cursor:pointer;position:relative}
+  .lbadge{width:46px;height:46px;flex:none;border-radius:14px;display:grid;place-items:center;font-size:23px;
+    background:linear-gradient(160deg,#1c5a3c,#0e3625);box-shadow:inset 0 1px 0 rgba(167,243,208,.25),0 5px 12px rgba(0,0,0,.35)}
+  .lcard.done .lbadge{background:linear-gradient(160deg,var(--lime),var(--emerald));box-shadow:0 0 18px rgba(74,222,128,.6),inset 0 1px 0 rgba(255,255,255,.55)}
+  .lcard.locked .lbadge{background:linear-gradient(160deg,#2b3f36,#1b2a24)}
+  .linfo{flex:1;min-width:0}
+  .lnum{font-size:10.5px;text-transform:uppercase;letter-spacing:2px;color:var(--dim);font-weight:800}
+  .ltitle{font-size:16px;font-weight:800;margin-top:2px;letter-spacing:-.2px;text-wrap:balance}
+  .lbar-wrap{margin-top:9px}
+  .lbar-track{height:8px;border-radius:20px;background:rgba(0,0,0,.35);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+  .lbar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--emerald),var(--lime));box-shadow:0 0 12px rgba(74,222,128,.6);transition:width .4s}
+  .lchev{color:var(--dim);font-size:15px;transition:transform .25s;flex:none}
+  .lcard.open .lchev{transform:rotate(180deg)}
+  .lbody{max-height:0;overflow:hidden;transition:max-height .4s ease}
+  .lcard.open .lbody{max-height:3200px}
+  .lbody-inner{padding:2px 17px 18px}
+  .ldivider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:0 0 12px}
+  .slabel{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--mint);margin:14px 0 8px;text-wrap:balance}
+  .citem{display:flex;gap:11px;align-items:flex-start;padding:11px 8px;margin:0 -8px;min-height:44px;border-radius:12px;cursor:pointer;outline:none}
+  .citem.sub{margin-left:22px}
+  .citem:active{background:rgba(74,222,128,.06)}
+  .cbox{width:26px;height:26px;flex:none;border-radius:8px;margin-top:0;border:2px solid rgba(120,180,150,.5);background:rgba(0,0,0,.2);display:grid;place-items:center;transition:.18s;position:relative}
+  .cbox.on{border-color:transparent;background:linear-gradient(160deg,var(--lime),var(--emerald));box-shadow:0 0 14px rgba(74,222,128,.65),inset 0 1px 0 rgba(255,255,255,.6);animation:pop .3s ease}
+  .cbox::after{content:"";width:6px;height:11px;border:solid #05130b;border-width:0 3px 3px 0;transform:rotate(45deg) scale(0);transition:.18s;margin-top:-2px}
+  .cbox.on::after{transform:rotate(45deg) scale(1)}
+  @keyframes pop{0%{transform:scale(.7)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .ccontent{flex:1;min-width:0}
+  .clabel{font-size:14px;transition:.18s}
+  .citem.on .clabel{color:var(--dim);text-decoration:line-through;text-decoration-color:rgba(143,184,151,.5)}
+  .cdesc{font-size:12.5px;color:var(--dim);margin-top:4px;line-height:1.55}
+  .locked-msg{display:flex;gap:9px;align-items:center;color:var(--dim);font-size:13.5px;padding:6px 0 4px}
+
+  .tools{margin-top:22px;display:flex;flex-direction:column;gap:10px}
+  .toolrow{display:flex;gap:10px}
+  .backup-btn{flex:1;border:none;cursor:pointer;border-radius:14px;padding:13px;font-size:12.5px;font-weight:800;font-family:inherit;color:var(--mint);
+    background:linear-gradient(160deg,rgba(20,63,43,.9),rgba(11,39,27,.95));box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 rgba(167,243,208,.15);transition:transform .12s}
+  .backup-btn:active{transform:scale(.97)}
+  .backup-hint{text-align:center;font-size:11.5px;color:var(--dim);line-height:1.5}
+  .reset-btn{width:100%;border:none;cursor:pointer;border-radius:14px;padding:12px;font-size:12.5px;font-weight:700;font-family:inherit;color:#c98a8a;background:transparent;box-shadow:inset 0 0 0 1px rgba(239,68,68,.25);transition:transform .12s}
+  .reset-btn:active{transform:scale(.97)}
+
+  /* ── VICTORY ── */
+  #voverlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(2,10,6,.82);padding:24px;backdrop-filter:blur(3px)}
+  #voverlay.show{display:flex}
+  .vcard{max-width:340px;width:100%;text-align:center;border-radius:26px;padding:38px 26px 28px;position:relative;overflow:hidden;
+    background:linear-gradient(165deg,#17512f,#0a2417);border:2px solid var(--lime);box-shadow:0 0 70px rgba(74,222,128,.35),inset 0 1px 0 rgba(255,255,255,.25);animation:rise .4s ease}
+  .vcard.trophy{border-color:var(--gold);box-shadow:0 0 70px rgba(247,201,72,.4),inset 0 1px 0 rgba(255,255,255,.25)}
+  .vcard::before{content:"";position:absolute;left:0;right:0;top:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.12),transparent)}
+  @keyframes rise{from{transform:translateY(24px) scale(.94);opacity:0}to{transform:none;opacity:1}}
+  .vicon{font-size:62px;display:block;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4))}
+  .vstars{font-size:25px;letter-spacing:5px;margin:6px 0 2px}
+  .vtitle{font-size:22px;font-weight:800;margin-top:6px;color:var(--gold2);text-shadow:0 2px 14px rgba(247,201,72,.4);text-wrap:balance}
+  .vsub{font-size:14px;color:var(--mint);margin-top:9px;line-height:1.6}
+  .vbtn{margin-top:22px;width:100%;border:none;border-radius:15px;padding:14px;font-family:inherit;font-size:14px;font-weight:800;color:#05130b;cursor:pointer;
+    background:linear-gradient(160deg,var(--lime),var(--emerald));box-shadow:0 8px 20px rgba(74,222,128,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden}
+  .cp{position:absolute;top:-14px;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(106vh) rotate(680deg)}}
+
+  button:focus-visible,.lheader:focus-visible,.citem:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="confetti"></div>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+  <div class="ob-card">
+    <div class="ob-pets">🐶&nbsp;🐱</div>
+    <div class="ob-brand">🩺 EndócrinoVet</div>
+    <h1 class="ob-title">Detetive da Endócrino</h1>
+    <p class="ob-sub">O passo a passo da Alê pra identificar e tratar as endocrinopatias com total confiança.<br><br>Cada pessoa tem o seu próprio progresso.<br>Como você se chama?</p>
+    <input class="ob-input" id="name-input" type="text" placeholder="Seu nome..." maxlength="34" autocomplete="off" autocapitalize="words" enterkeyhint="go" aria-label="Seu nome">
+    <button class="ob-btn" id="start-btn">Começar investigação 🔍</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="brand">
+    <div class="pets">🐶&nbsp;🐱</div>
+    <div class="logo"><span class="cross"></span> EndócrinoVet</div>
+    <h1 class="title">Detetive da Endócrino</h1>
+  </div>
+
+  <div id="trophy-banner">🕵️ Detetive da Endócrino — caso encerrado!</div>
+
+  <div class="overall">
+    <div class="greet"><b class="greeting" id="greeting">Olá!</b><span class="count" id="overall-count">0 / 8 fases</span></div>
+    <div class="bar-track"><div class="bar-fill" id="overall-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="lessons" id="lessons"></div>
+
+  <div class="tools">
+    <div class="toolrow">
+      <button class="backup-btn" id="export-btn">⬇️ Salvar backup</button>
+      <button class="backup-btn" id="import-btn">⬆️ Restaurar backup</button>
+    </div>
+    <div class="backup-hint">Seu progresso é salvo automaticamente neste aparelho.<br>Use o backup ao trocar de celular.</div>
+    <button class="reset-btn" id="reset-btn">↺ Recomeçar meu progresso</button>
+  </div>
+</div>
+
+<!-- VICTORY -->
+<div id="voverlay">
+  <div class="vcard" id="vcard">
+    <span class="vicon" id="v-icon">🐾</span>
+    <div class="vstars" id="v-stars">⭐ ⭐ ⭐</div>
+    <div class="vtitle" id="v-title">Caso desvendado!</div>
+    <div class="vsub" id="v-sub">Parabéns!</div>
+    <button class="vbtn" id="v-btn">Continuar 🐾</button>
+  </div>
+</div>
+
+<script>
+// ═══════════ DADOS — só o que foi dito na imersão da Alê ═══════════
+var LESSONS = [
+  { id:1, icon:"🧠", title:"Os 3 Segredos", unlockDefault:true, sections:[
+    { label:"Mentalidade", items:[
+      { id:"1_1", label:"Endócrino não é bicho de 7 cabeças — com raciocínio lógico, fica simples." },
+      { id:"1_2", label:"Você já sabe endocrinologia; só precisa aprender a aplicar." }
+    ]},
+    { label:"Segredo 1 — Endocrinopatia é SISTÊMICA", items:[
+      { id:"1_3", label:"Um mesmo hormônio age em vários tecidos (medula óssea, coração, folículo piloso)." },
+      { id:"1_4", label:"Cortisol: estimula a medula, aumenta a frequência cardíaca e, em excesso, bloqueia o pelo.", sub:true },
+      { id:"1_5", label:"Hormônio tiroidiano: estimula a medula, aumenta a frequência cardíaca e estimula o crescimento do pelo.", sub:true },
+      { id:"1_6", label:"Gera manifestação clínica E laboratorial sistêmica." }
+    ]},
+    { label:"Segredo 2 — Diagnósticos diferenciais", items:[
+      { id:"1_7", label:"Monto a lista de diagnósticos diferenciais a partir de cada alteração." },
+      { id:"1_8", label:"O diagnóstico se constrói juntando informação e eliminando possibilidade." }
+    ]},
+    { label:"Segredo 3 — Base mínima de dados ANTES dos testes", items:[
+      { id:"1_9",  label:"Nada de teste hormonal antes da base mínima de dados." },
+      { id:"1_10", label:"Regra de ouro: não teste quem não deve ser testado (evita falso positivo)." },
+      { id:"1_11", label:"Manifestação que não faz sentido = complicação da doença ou outra doença." }
+    ]}
+  ]},
+
+  { id:2, icon:"🔍", title:"O Método da Alê · CSI", sections:[
+    { label:"Etapa 0 — Quem matou a homeostase?", items:[
+      { id:"2_1", label:"Transformei o sintoma na pergunta \"quem matou a homeostase de ___?\"." },
+      { id:"2_2", label:"Meta: achar a etiologia, não só tratar o sintoma." }
+    ]},
+    { label:"Etapa 1 — Indícios do crime", items:[
+      { id:"2_3", label:"Reuni sintomas + exame físico + alterações laboratoriais de rotina." },
+      { id:"2_4", label:"Marquei o que faz sentido pra minha suspeita." },
+      { id:"2_5", label:"Isolei o \"estranho\" (o que não faz sentido) = complicação ou outra doença." },
+      { id:"2_6", label:"Usei o fenótipo pra direcionar (ex.: alopecia que poupa a cabeça = dermatose de origem hormonal).", sub:true }
+    ]},
+    { label:"Etapa 2 — CSI-Lab (base mínima de dados)", items:[
+      { id:"2_7",  label:"Hemograma (+ reticulócitos se houver anemia)." },
+      { id:"2_8",  label:"Bioquímicos completos — não esquecer colesterol, triglicérides e proteínas totais e frações." },
+      { id:"2_9",  label:"Urinálise (o pessoal esquece)." },
+      { id:"2_10", label:"Ultrassom abdominal (adrenais, fígado, vesícula)." },
+      { id:"2_11", label:"Cruzei as listas de diagnósticos diferenciais → a que aparece em várias é a principal suspeita." },
+      { id:"2_12", label:"Excluí infecciosas (Erliquia, Babesia, Leishmania) quando havia anemia." }
+    ]},
+    { label:"Etapa 3 — DNA do diagnóstico", items:[
+      { id:"2_13", label:"Confirmei que o paciente deve ser testado agora (sem contraindicação)." },
+      { id:"2_14", label:"Regra: não teste quem não deve ser testado." },
+      { id:"2_15", label:"Escolhi o teste da suspeita certa." },
+      { id:"2_16", label:"Lembrei: cortisol basal não fecha diagnóstico." }
+    ]},
+    { label:"Etapa 4 — Protocolo de ação", items:[
+      { id:"2_17", label:"Identifiquei o fator limitante / a doença mais grave (nem sempre é a endócrina)." },
+      { id:"2_18", label:"Corrigi as contraindicações antes (ex.: hiperlipidemia antes de cirurgia)." },
+      { id:"2_19", label:"Confirmei que tratar a endocrinopatia não vai piorar o paciente." }
+    ]},
+    { label:"Etapa 5 — Liberdade condicional", items:[
+      { id:"2_20", label:"Acompanhei a resposta clínica." },
+      { id:"2_21", label:"Fiz os exames de controle." },
+      { id:"2_22", label:"Sem resposta → dose errada ou diagnóstico errado." }
+    ]}
+  ]},
+
+  { id:3, icon:"🐶", title:"Síndrome de Cushing", sections:[
+    { label:"Quando suspeitar (indícios)", items:[
+      { id:"3_1", label:"PU/PD, polifagia, abdômen pendular, telangiectasia, pele fina, estrias, comedões, calcinose cutânea." },
+      { id:"3_2", label:"Alopecia simétrica bilateral que poupa a cabeça e as extremidades." },
+      { id:"3_3", label:"Perda de massa muscular, frouxidão ligamentar." },
+      { id:"3_4", label:"Quanto mais tempo de doença, mais manifestações fenotípicas." }
+    ]},
+    { label:"Alterações laboratoriais", items:[
+      { id:"3_5", label:"Leucograma de estresse (leucocitose, neutrofilia, linfopenia), eritrocitose discreta, trombocitose." },
+      { id:"3_6", label:"Fosfatase alcalina aumentada (isoenzima corticoide-induzida), hipertrigliceridemia." },
+      { id:"3_7", label:"Ultrassom: hepatomegalia com aumento de ecogenicidade." },
+      { id:"3_8", label:"Adrenais: aumento bilateral = hiperplasia; unilateral com atrofia contralateral = neoplasia." }
+    ]},
+    { label:"DNA do diagnóstico (testes)", items:[
+      { id:"3_9",  label:"Teste de eleição: supressão com dexametasona (mais sensível, menos falso negativo) — 3 coletas (basal, 4h, 8h); fecha na de 8h." },
+      { id:"3_10", label:"Alternativa: estimulação com ACTH (menos falso positivo) — basal + 1h." },
+      { id:"3_11", label:"Cortisol basal não fecha diagnóstico." },
+      { id:"3_12", label:"Teste negativo + clínica forte → repetir (radioimunoensaio tem mais acurácia que quimioluminescência)." }
+    ]},
+    { label:"Protocolo de ação (tratamento)", items:[
+      { id:"3_13", label:"Hipófise-dependente → trilostano (Vetoril)." },
+      { id:"3_14", label:"Adrenal-dependente (nódulo + atrofia contralateral) → adrenalectomia." },
+      { id:"3_15", label:"Não tratar se houver contraindicação (anemia, paciente sem comer)." }
+    ]},
+    { label:"⭐ Regras de ouro do Cushing", items:[
+      { id:"3_16", label:"Cushing SEM hepatomegalia = pulga atrás da orelha (investigar outra hepatopatia)." },
+      { id:"3_17", label:"Complicações frequentes: diabetes, mucocele biliar (29× mais chance), doença renal." }
+    ]}
+  ]},
+
+  { id:4, icon:"⚡", title:"Hipoadrenocorticismo (Addison)", sections:[
+    { label:"Quando suspeitar — o grande imitador", items:[
+      { id:"4_1", label:"Manifestações diversas: neurológicas, hipoglicemia (tremores, fraqueza, convulsão), quadro gastroentérico." },
+      { id:"4_2", label:"Imita doença renal e hepática, anemia, hipoalbuminemia, hipocolesterolemia, megaesôfago." }
+    ]},
+    { label:"Alterações laboratoriais (o divisor de águas)", items:[
+      { id:"4_3", label:"Hiponatremia + hipercalemia (mas nem todo Addison tem — o hipofisário só tem falta de cortisol)." },
+      { id:"4_4", label:"Azotemia pré-renal, acidose metabólica." },
+      { id:"4_5", label:"ECG: bradicardia com ausência de onda P (sugere hipercalemia)." }
+    ]},
+    { label:"DNA do diagnóstico", items:[
+      { id:"4_6", label:"Teste de estimulação com ACTH (basal + 1h)." },
+      { id:"4_7", label:"Cortisol basal acima do corte do laboratório (≈1–2) exclui Addison; abaixo disso, é obrigatório fazer a estimulação.", desc:"⚠️ A Alê confirma o valor de corte exato usado na imersão." }
+    ]},
+    { label:"Protocolo de ação (tratamento)", items:[
+      { id:"4_8", label:"Repor glicocorticoide + mineralocorticoide (Zicortal / fludrocortisona)." },
+      { id:"4_9", label:"Forma hipofisária: só glicocorticoide." }
+    ]},
+    { label:"Liberdade condicional (monitoramento)", items:[
+      { id:"4_10", label:"Dose do mineralocorticoide → sódio e potássio." },
+      { id:"4_11", label:"Dose do glicocorticoide → falta: anemia + hipoglicemia; excesso: colesterol/triglicérides + urina (hipostenúria)." },
+      { id:"4_12", label:"⭐ ERRO GRAVE: não se monitora Addison com estimulação de ACTH (adrenal destruída não responde)." },
+      { id:"4_13", label:"Prognóstico excelente após o diagnóstico." }
+    ]}
+  ]},
+
+  { id:5, icon:"🦋", title:"Hipotiroidismo canino", sections:[
+    { label:"Quando suspeitar", items:[
+      { id:"5_1", label:"Sobrepeso, letargia/apatia, anemia, alopecia simétrica, bradicardia, hipercolesterolemia." },
+      { id:"5_2", label:"⭐ MITO: \"todo gordinho é hipotiroideu\" — obesidade ~40–50% × hipotiroidismo < 3% em cães." }
+    ]},
+    { label:"DNA do diagnóstico", items:[
+      { id:"5_3", label:"T4 total ou T4 livre por diálise + TSH." },
+      { id:"5_4", label:"T4 livre sofre menos influência de doença sistêmica (menos falso positivo).", sub:true },
+      { id:"5_5", label:"Reforço: ultrassom cervical + anticorpo antitireoglobulina (positivo = mais chance; negativo não exclui)." },
+      { id:"5_6", label:"Cuidar da síndrome do eutiroideo doente (T4 baixo com tireoide sadia)." },
+      { id:"5_7", label:"Não dosar T3 (dosa-se o T4)." }
+    ]},
+    { label:"Protocolo de ação (tratamento)", items:[
+      { id:"5_8", label:"Levotiroxina 20 µg/kg BID (jejum de 2h antes; sem comer 30 min depois; água à vontade)." },
+      { id:"5_9", label:"Não usar manipulado." }
+    ]},
+    { label:"Liberdade condicional (monitoramento)", items:[
+      { id:"5_10", label:"Teste de reposição hormonal: levotiroxina no horário habitual, coleta 4h depois → T4 total (meta 2,5–5) + TSH (quanto mais baixo, melhor)." },
+      { id:"5_11", label:"Resposta clínica é obrigatória." },
+      { id:"5_12", label:"⭐ Se tratou e não melhorou → dose errada ou diagnóstico errado." }
+    ]}
+  ]},
+
+  { id:6, icon:"💉", title:"Diabetes mellitus", sections:[
+    { label:"Diagnóstico", items:[
+      { id:"6_1", label:"Hiperglicemia + glicosúria (os dois)." },
+      { id:"6_2", label:"Cetonúria + hiporexia/anorexia/vômito = cetoacidose diabética." }
+    ]},
+    { label:"Manejo da insulina (checar SEMPRE antes de aumentar a dose)", items:[
+      { id:"6_3", label:"Insulina NPH: depois de aberta, temperatura ambiente (não geladeira), protegida da luz." },
+      { id:"6_4", label:"Homogeneizar por rolamento/inversão, nunca chacoalhar." },
+      { id:"6_5", label:"Seringa específica de insulina; aplicar no gradil costal; não massagear; contar até 10 ao injetar." },
+      { id:"6_6", label:"Fêmea diabética: castrar (diestro → progesterona → GH → resistência)." }
+    ]},
+    { label:"Resistência insulínica", items:[
+      { id:"6_7", label:"Dose máxima ~1,5 U/kg a cada 12h; acima disso, pensar em resistência." },
+      { id:"6_8", label:"Causa nº1: doença periodontal → todo diabético faz profilaxia dentária." },
+      { id:"6_9", label:"Checkup completo (qualquer doença concomitante causa mau controle)." }
+    ]},
+    { label:"Monitoramento — FreeStyle Libre", items:[
+      { id:"6_10", label:"Monitoramento contínuo por 14 dias; criar consultório no LibreView e o cliente compartilha os dados." },
+      { id:"6_11", label:"Escanear a cada no máximo 9h (senão perde dados)." },
+      { id:"6_12", label:"Analisar resumo mensal (médias) + curvas diárias; cadastrar a meta (ex.: até 150/200; 70–120 pra remissão em gato)." },
+      { id:"6_13", label:"O Libre erra pra menos → calibrar hipoglicemia < 50 pra não gerar falso alarme." }
+    ]}
+  ]},
+
+  { id:7, icon:"⚖️", title:"Obesidade", sections:[
+    { label:"Ponto de partida", items:[
+      { id:"7_1", label:"Sempre usar o score de condição corporal (1–9; 5 é o ideal) — o peso sozinho não diz nada." }
+    ]},
+    { label:"1. Excesso de ingestão alimentar (o \"OB\") — a causa mais comum", items:[
+      { id:"7_2", label:"O tutor superalimenta sem perceber e jura que o pet \"não come tanto\"." },
+      { id:"7_3", label:"Fiz a avaliação nutricional (o que come e quanto come).", sub:true },
+      { id:"7_4", label:"Calculei a necessidade energética e prescrevi dieta.", sub:true },
+      { id:"7_5", label:"Emagreceu com a dieta correta → era só excesso alimentar.", sub:true }
+    ]},
+    { label:"2. Hipotiroidismo — cuidado com o mito", items:[
+      { id:"7_6", label:"\"Todo gordinho é hipotiroideu\" é MITO: obesidade ~40–50% × hipotiroidismo < 3% em cães." },
+      { id:"7_7", label:"Só investigo com indício na base mínima (anemia, hipercolesterolemia).", sub:true }
+    ]},
+    { label:"3. Síndrome de Cushing — só com outros sintomas", items:[
+      { id:"7_8", label:"Procurei PU/PD, polifagia, adrenomegalia, hepatomegalia, densidade urinária baixa, hipertrigliceridemia, fosfatase alcalina aumentada." },
+      { id:"7_9", label:"Só testo com ≥1 sintoma, neoplasia adrenal ou hipertensão de difícil controle (consenso).", sub:true }
+    ]},
+    { label:"Regra de ouro", items:[
+      { id:"7_10", label:"Antes de testar endócrino → fazer a dieta de emagrecimento e reavaliar." },
+      { id:"7_11", label:"Ração coadjuvante (hipocalórica, enriquecida) ≠ ração light." },
+      { id:"7_12", label:"Só penso em endocrinopatia se a obesidade não responder à dieta bem feita." }
+    ]}
+  ]},
+
+  { id:8, icon:"🧰", title:"Caixa de Ferramentas", sections:[
+    { label:"Cartões de diagnósticos diferenciais (as tabelas que a Alê mandou printar)", items:[
+      { id:"8_1", label:"Poliúria / polidipsia (PU/PD)", desc:"Diabetes mellitus, glicosúria renal, doença renal (crônica/aguda), diurese pós-obstrutiva, piometra, sepse, insuficiência hepática, hipercortisolismo, pielonefrite, hipocalemia, hiponatremia, hipoadrenocorticismo, hipertiroidismo, diabetes insípido, polidipsia psicogênica, policitemia, acromegalia, síndrome paraneoplásica, medicamentos, dieta pobre em proteína." },
+      { id:"8_2", label:"Anemia", desc:"Doença crônica, deficiência de ferro, doença renal, doença hepática, perda aguda de sangue, hemólise, doença endócrina (hipotiroidismo e hipoadrenocorticismo)." },
+      { id:"8_3", label:"Hipoalbuminemia", desc:"Hepatopatias, consumo/absorção inadequados, nefropatia com perda de proteína, enteropatia com perda de proteína (linfangiectasia, linfoma, doença inflamatória intestinal), perda sanguínea crônica, gastrite hemorrágica, paracentese, vasculopatias, síntese subregulada, resposta de fase aguda negativa, diluição, hipoadrenocorticismo." },
+      { id:"8_4", label:"Hipertrigliceridemia / hipercolesterolemia", desc:"Genética/familiar (Schnauzer), síndrome de Cushing, hipotiroidismo, obesidade, medicamentos (fenobarbital, corticoide)." },
+      { id:"8_5", label:"Hipercalemia (potássio alto)", desc:"Doenças do trato urinário, pancreatite, enteropatias, cardiopatia crônica terminal, insuficiência hepática, efusão pleural/peritoneal, neoplasia, tricurídeos, cetoacidose diabética, sulfa-trimetoprim, inibidores da ECA, diuréticos poupadores de potássio, hipoadrenocorticismo. (Trombocitose pode dar falsa hipercalemia; lipemia, falsa hiponatremia; raças Akita/Shiba.)" },
+      { id:"8_6", label:"Nódulo adrenal", desc:"Não-funcionante; produtor de cortisol (Cushing); produtor de aldosterona (hiperaldosteronismo); produtor de catecolaminas (feocromocitoma). Atrofia contralateral só aparece no Cushing." },
+      { id:"8_7", label:"Mucocele biliar", desc:"Síndrome de Cushing (29× mais chance), hipotiroidismo (2–3×), hiperlipidemia (2–3×)." },
+      { id:"8_8", label:"Hiperplasia adrenal bilateral no gato", desc:"Síndrome de Cushing felino e acromegalia (ambos cursam com diabetes insulino-resistente)." }
+    ]}
+  ]}
+];
+
+// ═══════════ ESTADO ═══════════
+var userName='', checks={}, openId=null;
+function storageKey(){ return 'evet_'+userName.trim().toLowerCase().replace(/\s+/g,'_'); }
+
+// dupla persistência: localStorage + IndexedDB + cookie
+var _idb=null;
+function idbOpen(cb){ try{ if(_idb){cb(_idb);return;} var r=indexedDB.open('evet_db',1);
+  r.onupgradeneeded=function(){r.result.createObjectStore('store');};
+  r.onsuccess=function(){_idb=r.result;cb(_idb);}; r.onerror=function(){cb(null);}; }catch(e){cb(null);} }
+function idbSet(k,v){ idbOpen(function(db){ if(!db)return; try{db.transaction('store','readwrite').objectStore('store').put(v,k);}catch(e){} }); }
+function idbGet(k,cb){ idbOpen(function(db){ if(!db){cb(null);return;} try{ var r=db.transaction('store','readonly').objectStore('store').get(k);
+  r.onsuccess=function(){cb(r.result||null);}; r.onerror=function(){cb(null);}; }catch(e){cb(null);} }); }
+function cookieSet(k,v){ try{document.cookie=k+'='+encodeURIComponent(v)+';path=/;max-age=63072000';}catch(e){} }
+function cookieGet(k){ try{ var m=document.cookie.match('(?:^|; )'+k+'=([^;]*)'); return m?decodeURIComponent(m[1]):null; }catch(e){return null;} }
+
+function saveChecks(){ var k=storageKey(), d=JSON.stringify(checks);
+  try{localStorage.setItem(k,d);}catch(e){} idbSet(k,d); cookieSet(k,d); }
+function loadChecks(){ var k=storageKey(), ls=null,ck=null;
+  try{ls=localStorage.getItem(k);}catch(e){} ck=cookieGet(k);
+  var best=ls||ck; try{checks=best?JSON.parse(best):{};}catch(e){checks={};}
+  idbGet(k,function(fi){ if(!fi){ if(best)idbSet(k,best); return; }
+    try{ var ic=JSON.parse(fi);
+      var a=Object.keys(ic).filter(function(x){return ic[x];}).length;
+      var b=Object.keys(checks).filter(function(x){return checks[x];}).length;
+      if(a>b){ checks=ic; try{localStorage.setItem(k,fi);}catch(e){} cookieSet(k,fi);
+        if(document.getElementById('app').style.display==='block'){ render(); updateOverall(); } }
+    }catch(e){} });
+}
+
+function exportBackup(){ var p={user:userName,checks:checks,ts:1,v:1}, t=JSON.stringify(p);
+  try{ var b=new Blob([t],{type:'application/json'}), u=URL.createObjectURL(b), a=document.createElement('a');
+    var s=userName.trim().toLowerCase().replace(/\s+/g,'_')||'progresso';
+    a.href=u; a.download='backup_endocrinovet_'+s+'.json'; document.body.appendChild(a); a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},500);
+  }catch(e){ prompt('Copie e guarde este código de backup:',t); } }
+function importBackup(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+  inp.onchange=function(){ var f=inp.files[0]; if(!f)return; var rd=new FileReader();
+    rd.onload=function(){ try{ var p=JSON.parse(rd.result), inc=p.checks||p; if(typeof inc!=='object')throw 0;
+      checks=inc; saveChecks(); openId=null; document.getElementById('trophy-banner').style.display='none';
+      render(); updateOverall(); alert('Progresso restaurado com sucesso! ✅'); }
+      catch(e){ alert('Arquivo de backup inválido. 😕'); } };
+    rd.readAsText(f); }; inp.click(); }
+
+function allItems(l){ var a=[]; l.sections.forEach(function(s){ s.items.forEach(function(i){a.push(i);}); }); return a; }
+function totalItems(l){ return allItems(l).length; }
+function doneItems(l){ return allItems(l).filter(function(i){return checks[i.id];}).length; }
+function pct(l){ var t=totalItems(l); return t?Math.round(doneItems(l)/t*100):0; }
+function isComplete(l){ var t=totalItems(l); return t>0 && doneItems(l)===t; }
+function isUnlocked(l){ if(l.unlockDefault)return true; var prev=null;
+  LESSONS.forEach(function(x){ if(x.id===l.id-1)prev=x; }); return prev && isComplete(prev); }
+
+function bindTap(el,fn){ if(!el)return; var lt=0;
+  el.addEventListener('touchend',function(){ lt=Date.now(); fn(); });
+  el.addEventListener('click',function(){ if(Date.now()-lt<700)return; fn(); }); }
+
+function boot(){
+  bindTap(document.getElementById('start-btn'),startApp);
+  bindTap(document.getElementById('v-btn'),closeVictory);
+  bindTap(document.getElementById('reset-btn'),confirmReset);
+  bindTap(document.getElementById('export-btn'),exportBackup);
+  bindTap(document.getElementById('import-btn'),importBackup);
+  document.getElementById('name-input').addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.isComposing)startApp(); });
+  try{ var s=localStorage.getItem('evet_username'); if(s&&s.trim()){ userName=s; loadChecks(); launch(); return; } }catch(e){}
+  setTimeout(function(){ try{document.getElementById('name-input').focus();}catch(e){} },300);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+
+function startApp(){ var inp=document.getElementById('name-input'), v=inp.value.trim();
+  if(!v){ inp.style.borderColor='#ef4444'; inp.placeholder='Digite seu nome primeiro!';
+    setTimeout(function(){inp.style.borderColor='';inp.placeholder='Seu nome...';},2000); return; }
+  userName=v; try{localStorage.setItem('evet_username',userName);}catch(e){}
+  loadChecks(); document.getElementById('onboarding').style.display='none'; launch(); }
+function launch(){ document.getElementById('onboarding').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('greeting').textContent='Olá, '+userName+' 👋'; render(); updateOverall(); }
+
+function render(){ var c=document.getElementById('lessons'); c.innerHTML='';
+  LESSONS.forEach(function(l){ c.appendChild(buildCard(l)); }); }
+
+function buildCard(l){
+  var unlocked=isUnlocked(l), done=isComplete(l), p=pct(l), isOpen=openId===l.id, total=totalItems(l);
+  var card=document.createElement('div');
+  card.className='lcard'+(done?' done':'')+(!unlocked?' locked':'')+(isOpen?' open':'');
+  card.id='lcard-'+l.id;
+  var badge=done?'✅':(!unlocked?'🔒':l.icon), chev=unlocked?'▾':'';
+  var bar=total>0?'<div class="lbar-wrap"><div class="lbar-track"><div class="lbar-fill" style="width:'+p+'%"></div></div></div>':'';
+  card.innerHTML=
+    '<div class="lheader" tabindex="0" role="button" aria-expanded="'+(isOpen?'true':'false')+'"><div class="lbadge">'+badge+'</div><div class="linfo">'+
+    '<div class="lnum">Fase '+l.id+'</div><div class="ltitle">'+l.title+'</div>'+bar+
+    '</div><div class="lchev">'+chev+'</div></div>'+
+    '<div class="lbody"><div class="lbody-inner"><div class="ldivider"></div>'+buildBody(l,unlocked)+'</div></div>';
+  var hdr=card.querySelector('.lheader');
+  bindTap(hdr,function(){ toggleLesson(l.id); });
+  hdr.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleLesson(l.id); } });
+  card.querySelectorAll('.citem').forEach(function(row){
+    var iid=row.getAttribute('data-item'); if(!iid)return; var lastT=0;
+    row.addEventListener('touchend',function(e){ lastT=Date.now(); e.stopPropagation(); toggleItem(iid,l.id); });
+    row.addEventListener('click',function(e){ e.stopPropagation(); if(Date.now()-lastT<700)return; toggleItem(iid,l.id); });
+    row.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); toggleItem(iid,l.id); } });
+  });
+  return card;
+}
+
+function buildBody(l,unlocked){
+  if(!unlocked) return '<div class="locked-msg">🔒 Complete a fase anterior para desbloquear.</div>';
+  var html='';
+  l.sections.forEach(function(sec){
+    html+='<div class="slabel">'+sec.label+'</div>';
+    sec.items.forEach(function(it){
+      var on=checks[it.id]?true:false, sub=it.sub?' sub':'';
+      html+='<div class="citem'+sub+(on?' on':'')+'" id="ci-'+it.id+'" data-item="'+it.id+'" tabindex="0" role="checkbox" aria-checked="'+(on?'true':'false')+'">'+
+        '<div class="cbox'+(on?' on':'')+'"></div>'+
+        '<div class="ccontent"><div class="clabel">'+it.label+'</div>'+
+        (it.desc?'<div class="cdesc">'+it.desc+'</div>':'')+'</div></div>';
+    });
+  });
+  return html;
+}
+
+function toggleLesson(id){
+  var l=null; LESSONS.forEach(function(x){ if(x.id===id)l=x; }); if(!l)return;
+  if(!isUnlocked(l)){ var el=document.getElementById('lcard-'+id);
+    if(el){ el.style.animation='none'; el.offsetHeight; el.style.animation='shake .4s ease'; setTimeout(function(){el.style.animation='';},400); } return; }
+  openId=(openId===id)?null:id; render();
+  var tcard=document.getElementById('lcard-'+id); var thdr=tcard?tcard.querySelector('.lheader'):null;
+  if(thdr){ try{ thdr.focus({preventScroll:true}); }catch(e){ thdr.focus(); } }
+  if(openId) setTimeout(function(){ if(tcard)tcard.scrollIntoView({behavior:'smooth',block:'start'}); },60);
+}
+
+function toggleItem(itemId,lessonId){
+  checks[itemId]=!checks[itemId]; saveChecks();
+  var ci=document.getElementById('ci-'+itemId), cb=ci?ci.querySelector('.cbox'):null;
+  if(ci&&cb){ if(checks[itemId]){ci.classList.add('on');cb.classList.add('on');} else {ci.classList.remove('on');cb.classList.remove('on');}
+    ci.setAttribute('aria-checked',checks[itemId]?'true':'false'); }
+  refreshBar(lessonId); updateOverall();
+  var l=null; LESSONS.forEach(function(x){ if(x.id===lessonId)l=x; });
+  var allDone=LESSONS.every(function(x){return isComplete(x);});
+  if(checks[itemId]&&l&&isComplete(l)&&!allDone) setTimeout(function(){ showVictory(lessonId); },350);
+  if(allDone) setTimeout(function(){ showTrophy(); },350);
+}
+
+function refreshBar(lessonId){
+  var l=null; LESSONS.forEach(function(x){ if(x.id===lessonId)l=x; });
+  var card=document.getElementById('lcard-'+lessonId); if(!card||!l)return;
+  var fill=card.querySelector('.lbar-fill'); if(fill)fill.style.width=pct(l)+'%';
+  var badge=card.querySelector('.lbadge'); if(badge)badge.textContent=isComplete(l)?'✅':l.icon;
+  if(isComplete(l))card.classList.add('done'); else card.classList.remove('done');
+}
+
+function updateOverall(){
+  var total=LESSONS.length, done=LESSONS.filter(function(l){return isComplete(l);}).length;
+  document.getElementById('overall-count').textContent=done+' / '+total+' fases';
+  document.getElementById('overall-fill').style.width=Math.round(done/total*100)+'%';
+  if(done===total) document.getElementById('overall-fill').classList.add('all-done');
+  else document.getElementById('overall-fill').classList.remove('all-done');
+}
+
+function showVictory(lessonId){
+  var next=null; LESSONS.forEach(function(x){ if(x.id===lessonId+1)next=x; });
+  document.getElementById('vcard').classList.remove('trophy');
+  document.getElementById('v-icon').textContent='🐾';
+  document.getElementById('v-stars').textContent='⭐ ⭐ ⭐';
+  document.getElementById('v-title').textContent='Caso desvendado!';
+  document.getElementById('v-sub').innerHTML=next
+    ? 'Mandou bem, <b>'+userName+'</b>! Você desbloqueou: <b>"'+next.title+'"</b>. Bora pra próxima! 🐶🐱'
+    : 'Uau, <b>'+userName+'</b>! Você concluiu todas as fases!';
+  document.getElementById('voverlay').classList.add('show'); spawnConfetti(80);
+}
+function showTrophy(){
+  document.getElementById('vcard').classList.add('trophy');
+  document.getElementById('v-icon').textContent='🕵️';
+  document.getElementById('v-stars').textContent='🌟 🏆 🌟';
+  document.getElementById('v-title').textContent='DETETIVE DA ENDÓCRINO!';
+  document.getElementById('v-sub').innerHTML='Parabéns, <b>'+userName+'</b>! Você desvendou todos os casos e destravou a endocrinologia. Agora é aplicar na rotina! 🐾';
+  document.getElementById('voverlay').classList.add('show');
+  document.getElementById('trophy-banner').style.display='block'; spawnConfetti(150);
+}
+function closeVictory(){
+  document.getElementById('voverlay').classList.remove('show');
+  var next=null; LESSONS.forEach(function(l){ if(!next&&isUnlocked(l)&&!isComplete(l))next=l; });
+  openId=next?next.id:null; render();
+  if(next) setTimeout(function(){ var el=document.getElementById('lcard-'+next.id); if(el)el.scrollIntoView({behavior:'smooth',block:'start'}); },200);
+}
+
+function spawnConfetti(n){
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  var c=document.getElementById('confetti'); c.innerHTML='';
+  var cols=['#4ade80','#12b981','#a7f3d0','#f7c948','#ffe08a','#ffffff','#22c55e'];
+  for(var i=0;i<n;i++){ var p=document.createElement('div'), s=6+Math.random()*8; p.className='cp';
+    p.style.cssText='left:'+Math.random()*100+'%;width:'+s+'px;height:'+s+'px;background:'+cols[Math.floor(Math.random()*cols.length)]+
+      ';border-radius:'+(Math.random()>.5?'50%':'2px')+';animation-duration:'+(1.5+Math.random()*2.2)+'s;animation-delay:'+(Math.random()*.8)+'s;';
+    c.appendChild(p); }
+  setTimeout(function(){c.innerHTML='';},5000);
+}
+
+function confirmReset(){
+  if(confirm('Recomeçar TODO o seu progresso, '+userName+'?\n\nEssa ação não pode ser desfeita.')){
+    checks={}; saveChecks(); openId=null;
+    document.getElementById('trophy-banner').style.display='none';
+    document.getElementById('overall-fill').classList.remove('all-done'); render(); updateOverall();
+  }
+}
+
+var _s=document.createElement('style');
+_s.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}';
+document.head.appendChild(_s);
+</script>
+</body>
+</html>
