@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#eef2f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="Mapa mental interativo de endocrinopatias veterinárias — clique nos tópicos para abrir. Conteúdo da live + pesquisa verificada.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+<title>Mapa Mental — Endocrinopatias Vet</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{ --dim:#7a8a84; --line:#e2e8e5; }
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#2a3a34;
+    background:#eef2f1;min-height:100vh;overflow:hidden}
+  .top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:11px 16px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.04)}
+  .brand{font-size:15px;font-weight:800;color:#127a52;letter-spacing:.2px}
+  .spacer{flex:1}
+  .legend{display:flex;gap:13px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:#fff;color:#127a52;font-family:inherit;font-weight:700;
+    font-size:12.5px;padding:7px 12px;border-radius:10px;cursor:pointer;transition:.12s;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .btn:hover{background:#f1faf6}
+  .btn:active{transform:scale(.96)}
+  .hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:20;font-size:12px;color:var(--dim);
+    background:rgba(255,255,255,.92);padding:7px 14px;border-radius:20px;border:1px solid var(--line);pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+  .map{position:absolute;inset:0;overflow:auto;padding:96px 60px 80px;-webkit-overflow-scrolling:touch;cursor:grab;
+    background-image:radial-gradient(#d4ddd9 1.2px, transparent 1.2px);background-size:24px 24px;background-position:14px 14px}
+  .map.drag{cursor:grabbing}
+  .tree{position:relative;width:max-content;min-width:100%}
+  svg.links{position:absolute;top:0;left:0;pointer-events:none;z-index:1;overflow:visible}
+
+  .node{display:flex;align-items:center;gap:52px}
+  .kids{display:none;flex-direction:column;gap:15px;align-items:flex-start}
+  .node.open>.kids{display:flex}
+
+  .pill{position:relative;z-index:2;user-select:none;border-radius:22px;font-weight:700;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:8px;transition:transform .12s, box-shadow .12s}
+  .pill.has{cursor:pointer}
+  .pill.has:hover{transform:translateY(-1px)}
+  .pill:active{transform:scale(.98)}
+  .tog{font-size:.72em;opacity:.8;transition:transform .22s;display:inline-block}
+  .node.open>.pill .tog{transform:rotate(90deg)}
+  .count{font-size:.7em;opacity:.7;font-weight:800}
+
+  /* níveis — bolhas de mapa mental, fundo claro */
+  .d0{font-size:18px;padding:15px 26px;color:#fff;font-weight:800;border-radius:26px;
+    background:linear-gradient(160deg,#20bd7b,#0e8c5a);box-shadow:0 9px 22px rgba(16,140,90,.32)}
+  .d0 small{font-weight:600;opacity:.85;font-size:.62em}
+  .d1{font-size:15.5px;padding:12px 20px;color:#fff;border-radius:24px;
+    background:var(--c);box-shadow:0 7px 16px rgba(40,55,50,.24)}
+  .d2{font-size:13.5px;padding:10px 17px;font-weight:700;color:#2b3a34;border-radius:20px;
+    background:#fff;border:2px solid var(--c);box-shadow:0 4px 12px rgba(40,55,50,.13)}
+  .d3{font-size:12.8px;padding:8px 14px;font-weight:600;color:#38473f;max-width:330px;white-space:normal;line-height:1.35;border-radius:16px;
+    background:#fff;border:1.5px solid var(--line);border-left:4px solid var(--c);box-shadow:0 3px 9px rgba(40,55,50,.09)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brand">Mapa Mental — Endocrinopatias</div>
+  <div class="spacer"></div>
+  <div class="legend"><span>🟢 live</span><span>🔵 pesquisa</span><span>⚠️ validar</span></div>
+  <button class="btn" id="expand">➕ Expandir</button>
+  <button class="btn" id="collapse">➖ Recolher</button>
+</div>
+
+<div class="map" id="map"><div class="tree" id="tree">
+  <svg class="links" id="links"></svg>
+</div></div>
+
+<div class="hint">👆 Clique nos tópicos para abrir · arraste para navegar</div>
+
+<script>
+var C = {cush:'#e06666', add:'#e8973c', hipo:'#7c6fe0', hiper:'#22a6bd', dm:'#d9569b', ob:'#46b06a'};
+
+var DATA = {
+  label:'Endocrinopatias', sub:'cães & gatos', children:[
+
+  { label:'Cushing', color:C.cush, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'PU/PD + polifagia (mais precoces)',s:'live'},
+      {t:'Abdômen pendular + atrofia muscular',s:'live'},
+      {t:'Alopecia simétrica que poupa cabeça/extremidades',s:'live'},
+      {t:'Pele fina, comedões, calcinose cutânea',s:'live'},
+      {t:'Ofegação, ITU recorrente sem piúria',s:'pesquisa'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Leucograma de estresse',s:'live'},
+      {t:'↑↑ Fosfatase alcalina (corticoide-induzida)',s:'live'},
+      {t:'Eritrocitose + trombocitose',s:'live'},
+      {t:'Hipercolesterolemia / triglicérides',s:'live'},
+      {t:'Urina diluída + proteinúria',s:'pesquisa'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'Cortisol basal NÃO fecha diagnóstico',s:'live'},
+      {t:'LDDST (supressão dexa) = eleição, + sensível',s:'live'},
+      {t:'ACTH stim = + específico (usar em doente)',s:'live'},
+      {t:'PDH × adrenal: ACTH endógeno / HDDST',s:'pesquisa'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'US: hepatomegalia + ↑ecogenicidade',s:'live'},
+      {t:'Adrenais: bilateral=hiperplasia / unilateral+atrofia=neoplasia',s:'live'},
+      {t:'TC/RM p/ tumor; pressão arterial',s:'pesquisa'} ]},
+    { label:'Tratamento', children:[
+      {t:'Trilostano (Vetoril) — 1ª linha PDH',s:'live'},
+      {t:'Dose 1–3 mg/kg com alimento (SID×BID?)',s:'confirmar'},
+      {t:'Adrenalectomia (adrenal-dependente)',s:'live'},
+      {t:'Mitotano — alternativa',s:'pesquisa'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'PDH ~85% × adrenal ~15%',s:'live'},
+      {t:'Alopecia hormonal: Cushing × hipotiroidismo',s:'live'},
+      {t:'Nódulo adrenal: cortisol × aldosterona × catecolaminas',s:'live'},
+      {t:'"Falso Cushing": repila com corticoide = não era',s:'live'},
+      {t:'Complicações: DM, mucocele biliar (29×), doença renal',s:'live'},
+      {t:'Iatrogênico (corticoide exógeno)',s:'pesquisa'},
+      {t:'Falso-positivo em doença não-adrenal',s:'pesquisa'} ]} ]},
+
+  { label:'Addison', color:C.add, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'"Grande imitador" — sinais que vão e voltam',s:'live'},
+      {t:'Quadro GI (vômito, diarreia, anorexia)',s:'live'},
+      {t:'Hipoglicemia, neuro, megaesôfago',s:'live'},
+      {t:'Crise: colapso, bradiarritmia',s:'pesquisa'},
+      {t:'Forma atípica: falta só cortisol → sem alteração de Na/K',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Hiponatremia + hipercalemia',s:'live'},
+      {t:'Azotemia pré-renal + densidade baixa',s:'live'},
+      {t:'Acidose metabólica',s:'live'},
+      {t:'Anemia arregenerativa',s:'live'},
+      {t:'Hipoalbuminemia / hipocolesterolemia',s:'live'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'Cortisol basal > 2 µg/dL exclui',s:'live'},
+      {t:'Basal ≤ 2 → obriga estímulo ACTH',s:'live'},
+      {t:'ACTH stim = padrão-ouro',s:'live'},
+      {t:'Pós-ACTH ≤ 2 fecha; 2–8 é equívoco',s:'pesquisa'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'ECG: bradicardia sem onda P (hipercalemia)',s:'live'},
+      {t:'RX: microcardia / megaesôfago',s:'pesquisa'},
+      {t:'US: adrenais finas (apoio)',s:'confirmar'} ]},
+    { label:'Tratamento', children:[
+      {t:'Glicocorticoide + mineralocorticoide',s:'live'},
+      {t:'DOCP (Zycortal) — iniciar baixo',s:'pesquisa'},
+      {t:'Fludrocortisona — alternativa',s:'pesquisa'},
+      {t:'Crise: fluido + dextrose + dexa fosfato',s:'pesquisa'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Doença renal',s:'live'},
+      {t:'Hepatopatia',s:'live'},
+      {t:'Gastroenterite / megaesôfago',s:'live'},
+      {t:'Outras causas de hipercalemia',s:'pesquisa'} ]} ]},
+
+  { label:'Hipotiroidismo', color:C.hipo, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'Ganho de peso SEM ↑ apetite',s:'live'},
+      {t:'Letargia, intolerância ao frio',s:'live'},
+      {t:'Alopecia simétrica não pruriginosa',s:'pesquisa'},
+      {t:'Bradicardia',s:'live'},
+      {t:'Mito "todo gordinho é hipotiroideu"',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Anemia não regenerativa',s:'pesquisa'},
+      {t:'Hipercolesterolemia (~80%)',s:'pesquisa'},
+      {t:'↑ discreto de FA / CK',s:'pesquisa'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'T4 total = triagem (normal exclui)',s:'pesquisa'},
+      {t:'T4 livre por diálise = + específico',s:'live'},
+      {t:'TSH: 13–38% são normais (não exclui)',s:'pesquisa'},
+      {t:'Cuidar da síndrome do eutiroideo doente',s:'live'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'US cervical: tireoide atrófica apoia',s:'live'},
+      {t:'Teste terapêutico se ambíguo',s:'pesquisa'} ]},
+    { label:'Tratamento', children:[
+      {t:'Levotiroxina — vitalícia',s:'live'},
+      {t:'20 µg/kg, em jejum (SID×BID?)',s:'confirmar'},
+      {t:'Monitor: T4 pós-pílula + TSH (~4 sem)',s:'pesquisa'},
+      {t:'Não melhorou → dose ou diagnóstico errado',s:'live'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Síndrome do eutiroideo doente',s:'live'},
+      {t:'Obesidade primária',s:'live'},
+      {t:'Fármacos (corticoide, fenobarbital)',s:'pesquisa'},
+      {t:'Sighthounds (T4 baixo normal)',s:'pesquisa'} ]} ]},
+
+  { label:'Hipertiroidismo felino', color:C.hiper, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'Perda de peso COM polifagia (chave)',s:'pesquisa'},
+      {t:'PU/PD',s:'live'},
+      {t:'Hiperatividade, vocalização',s:'pesquisa'},
+      {t:'Nódulo tireoidiano palpável',s:'pesquisa'},
+      {t:'DDx de hipertensão felina',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'↑ ALT e FA (hepatopatia tireotóxica)',s:'pesquisa'},
+      {t:'Azotemia MASCARADA (reavaliar rim pós-tto)',s:'pesquisa'},
+      {t:'Densidade urinária variável',s:'pesquisa'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'T4 total = 1ª linha (referência do lab)',s:'confirmar'},
+      {t:'~10% têm T4 normal (não exclui)',s:'pesquisa'},
+      {t:'T4 livre se borderline',s:'pesquisa'},
+      {t:'TSH baixo (útil p/ excluir); supressão T3',s:'pesquisa'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'Pressão arterial em toda consulta',s:'live'},
+      {t:'Cintilografia (Tc-99m)',s:'pesquisa'},
+      {t:'Eco: cardiomiopatia tireotóxica',s:'pesquisa'} ]},
+    { label:'Tratamento', children:[
+      {t:'Radioiodo (I-131) = curativo',s:'pesquisa'},
+      {t:'Metimazol (oral / transdérmico)',s:'pesquisa'},
+      {t:'Tireoidectomia',s:'pesquisa'},
+      {t:'Dieta restrita em iodo (y/d)',s:'confirmar'},
+      {t:'Se DRC: manter T4 na metade superior',s:'pesquisa'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'DRC (mascarada)',s:'pesquisa'},
+      {t:'Diabetes mellitus',s:'pesquisa'},
+      {t:'GI / linfoma',s:'pesquisa'},
+      {t:'Acromegalia',s:'live'} ]} ]},
+
+  { label:'Diabetes + cetoacidose', color:C.dm, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'PU/PD/polifagia + perda de peso',s:'pesquisa'},
+      {t:'Catarata (cão) / neuropatia plantígrada (gato)',s:'pesquisa'},
+      {t:'CAD: anorexia, vômito, hálito cetônico',s:'live'},
+      {t:'Gatilho CAD: cetonúria + hiporexia',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Hiperglicemia + glicosúria (os DOIS)',s:'live'},
+      {t:'Cetonúria = cetoacidose',s:'live'},
+      {t:'↑ ALT/FA, lipemia',s:'pesquisa'},
+      {t:'CAD: hipocalemia (monitorar K/P)',s:'pesquisa'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'Frutosamina (crônica; normal=estresse no gato)',s:'pesquisa'},
+      {t:'Dx clínico-laboratorial (sem estímulo)',s:'pesquisa'},
+      {t:'Resistência → HAC / hipertireoidismo / acromegalia',s:'pesquisa'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'Checkup: exame odontológico (periodontal)',s:'live'},
+      {t:'US: pancreatite / adrenais',s:'pesquisa'},
+      {t:'CGM FreeStyle Libre (gradil costal, LibreView)',s:'confirmar'} ]},
+    { label:'Tratamento', children:[
+      {t:'Cão: NPH 0,25–0,5 U/kg q12h',s:'pesquisa'},
+      {t:'Manejo: rolar/não chacoalhar, gradil costal',s:'live'},
+      {t:'Gato: PZI/glargina; SGLT2i VO (não se CAD)',s:'pesquisa'},
+      {t:'Resistência >1,5 U/kg (cão) / >5 U (gato)',s:'live'},
+      {t:'Fêmea: castrar',s:'live'},
+      {t:'CAD: fluido 1º, insulina regular CRI',s:'pesquisa'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Hiperglicemia por estresse (gato)',s:'pesquisa'},
+      {t:'DM secundário (HAC, acromegalia, diestro)',s:'pesquisa'},
+      {t:'Pancreatite',s:'pesquisa'},
+      {t:'Estado hiperosmolar (HHS)',s:'pesquisa'} ]} ]},
+
+  { label:'Obesidade', color:C.ob, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'Score corporal 1–9 (ideal 5) — peso não basta',s:'live'},
+      {t:'Obeso >20% acima; sobrepeso 10–20%',s:'pesquisa'},
+      {t:'Intolerância a exercício, osteoartrite',s:'pesquisa'},
+      {t:'Mito do gordinho',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Base mínima antes de rotular endócrino',s:'live'},
+      {t:'Colesterol/triglicérides, glicemia',s:'pesquisa'},
+      {t:'Perfil hepático / renal',s:'pesquisa'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'Só testar após falha da dieta',s:'live'},
+      {t:'Hipotiroidismo: T4 livre baixo + TSH alto',s:'pesquisa'},
+      {t:'Cushing: LDDST / ACTH',s:'confirmar'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'Score corporal + muscular',s:'pesquisa'},
+      {t:'Pesagem seriada',s:'pesquisa'},
+      {t:'Pressão arterial (gato)',s:'pesquisa'} ]},
+    { label:'Tratamento', children:[
+      {t:'Dieta 1ª linha; coadjuvante ≠ light',s:'live'},
+      {t:'Peso meta = atual −20%',s:'live'},
+      {t:'Descontar petiscos (≤10%)',s:'live'},
+      {t:'RER 70×kg^0,75; cão 60%/gato 70% do MER',s:'pesquisa'},
+      {t:'Perda ~1%/semana',s:'pesquisa'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Excesso alimentar (mais comum)',s:'live'},
+      {t:'Hipotiroidismo',s:'live'},
+      {t:'Cushing (redistribuição de gordura)',s:'live'},
+      {t:'Gato obeso ≠ hipertireoideo',s:'pesquisa'} ]} ]}
+
+]};
+
+var SEAL={live:'🟢',pesquisa:'🔵',confirmar:'⚠️'};
+var tree=document.getElementById('tree'), links=document.getElementById('links');
+
+function build(data,depth){
+  var node=document.createElement('div'); node.className='node';
+  var pill=document.createElement('div'); pill.className='pill d'+depth;
+  var kids=(data.children&&data.children.length)?data.children:null;
+  if(depth===1 && data.color) node.style.setProperty('--c',data.color);
+
+  var html='';
+  if(kids) html+='<span class="tog">▸</span>';
+  if(depth===0) html+=data.label+' <small>'+data.sub+'</small>';
+  else if(data.t!==undefined) html+=SEAL[data.s]+' '+data.t;
+  else html+=data.label;
+  if(kids) html+=' <span class="count">'+data.children.length+'</span>';
+  pill.innerHTML=html;
+  node.appendChild(pill);
+
+  if(kids){
+    pill.classList.add('has');
+    var kc=document.createElement('div'); kc.className='kids';
+    data.children.forEach(function(ch){ kc.appendChild(build(ch,depth+1)); });
+    node.appendChild(kc);
+    pill.addEventListener('click',function(e){ e.stopPropagation(); node.classList.toggle('open'); redraw(); });
+  }
+  return node;
+}
+
+var root=build(DATA,0); root.classList.add('open'); tree.appendChild(root);
+
+function drawLinks(){
+  var tr=tree.getBoundingClientRect();
+  var w=tree.scrollWidth, h=tree.scrollHeight;
+  links.setAttribute('width',w); links.setAttribute('height',h);
+  links.style.width=w+'px'; links.style.height=h+'px';
+  var paths='';
+  tree.querySelectorAll('.node.open').forEach(function(n){
+    var kc=n.querySelector(':scope > .kids'); if(!kc)return;
+    var pEl=n.querySelector(':scope > .pill');
+    var pp=pEl.getBoundingClientRect();
+    if(pp.height===0)return;
+    var x1=pp.right-tr.left, y1=pp.top-tr.top+pp.height/2;
+    kc.querySelectorAll(':scope > .node > .pill').forEach(function(cpEl){
+      var cr=cpEl.getBoundingClientRect();
+      if(cr.height===0)return;
+      var x2=cr.left-tr.left, y2=cr.top-tr.top+cr.height/2;
+      var col=(getComputedStyle(cpEl.parentNode).getPropertyValue('--c')||'#9bb2a6').trim();
+      var mx=x1+(x2-x1)*0.5;
+      paths+='<path d="M '+x1+' '+y1+' C '+mx+' '+y1+', '+mx+' '+y2+', '+x2+' '+y2+
+        '" fill="none" stroke="'+col+'" stroke-width="2.8" stroke-linecap="round" opacity="0.9"/>';
+    });
+  });
+  links.innerHTML=paths;
+}
+function redraw(){ requestAnimationFrame(drawLinks); setTimeout(drawLinks,60); setTimeout(drawLinks,220); }
+
+document.getElementById('expand').addEventListener('click',function(){
+  tree.querySelectorAll('.pill.has').forEach(function(p){ p.parentNode.classList.add('open'); }); redraw(); });
+document.getElementById('collapse').addEventListener('click',function(){
+  tree.querySelectorAll('.node').forEach(function(n){ n.classList.remove('open'); }); root.classList.add('open'); redraw(); });
+window.addEventListener('resize',drawLinks);
+
+// arrastar pra navegar (pan)
+var map=document.getElementById('map'), down=false,sx,sy,sl,st;
+map.addEventListener('pointerdown',function(e){ if(e.pointerType!=='mouse')return; if(e.target.closest('.pill'))return; down=true;sx=e.clientX;sy=e.clientY;sl=map.scrollLeft;st=map.scrollTop;map.classList.add('drag'); });
+map.addEventListener('pointermove',function(e){ if(!down)return; map.scrollLeft=sl-(e.clientX-sx); map.scrollTop=st-(e.clientY-sy); });
+window.addEventListener('pointerup',function(){ down=false; map.classList.remove('drag'); });
+
+redraw();
+</script>
+</body>
+</html>
