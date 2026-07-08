@@ -39,6 +39,7 @@
   .node{display:flex;align-items:center;gap:46px}
   .kids{display:none;flex-direction:column;gap:13px;align-items:flex-start}
   .node.open>.kids{display:flex}
+  .kids>.node{transform-origin:left center;will-change:transform,opacity}
 
   .pill{position:relative;z-index:2;user-select:none;border-radius:12px;font-weight:700;white-space:nowrap;
     display:inline-flex;align-items:center;gap:8px}
@@ -273,9 +274,60 @@ function build(data,depth){
   return node;
 }
 var root=build(DATA,0); root.classList.add('open'); tree.appendChild(root);
-function toggle(pill){ pill.parentNode.classList.toggle('open'); redraw(); }
+
+function animateKids(kids, opening, done){
+  var items = kids.querySelectorAll(':scope > .node');
+  var stagger=32, base=300;
+  items.forEach(function(it,i){
+    it.style.transition='none';
+    it.style.opacity = opening ? '0' : '1';
+    it.style.transform = opening ? 'translateX(-16px) scale(.9)' : 'none';
+    void it.offsetWidth;
+    var delay=(opening ? i : (items.length-1-i))*stagger;
+    it.style.transition='opacity .3s ease '+delay+'ms, transform .38s cubic-bezier(.34,1.32,.5,1) '+delay+'ms';
+    it.style.opacity = opening ? '1' : '0';
+    it.style.transform = opening ? 'none' : 'translateX(-16px) scale(.9)';
+  });
+  var startT=null, total=base + items.length*stagger + 90;
+  function loop(t){
+    if(startT===null) startT=t;
+    drawLinks();
+    if(t-startT<total){ requestAnimationFrame(loop); }
+    else {
+      drawLinks();
+      if(opening) items.forEach(function(it){ it.style.transition=''; it.style.transform=''; it.style.opacity=''; });
+      if(done) done();
+    }
+  }
+  requestAnimationFrame(loop);
+}
+function setOpen(node, open){
+  var kids=node.querySelector(':scope > .kids'); if(!kids)return;
+  if(open){
+    node.dataset.anim='opening';
+    if(!node.classList.contains('open')) node.classList.add('open');
+    animateKids(kids,true);
+  } else {
+    if(!node.classList.contains('open')) return;
+    node.dataset.anim='closing';
+    animateKids(kids,false,function(){ if(node.dataset.anim==='closing'){ node.classList.remove('open'); redraw(); } });
+  }
+}
+function clearAnim(n){ n.style.transition=''; n.style.transform=''; n.style.opacity=''; }
+function toggle(pill){ var n=pill.parentNode; if(!n.querySelector(':scope > .kids'))return; setOpen(n, !n.classList.contains('open')); }
 
 // ── conectores ──
+function effOpacity(el){
+  var o=1;
+  while(el && el!==tree){
+    if(el.classList && el.classList.contains('node')){
+      var v=parseFloat(getComputedStyle(el).opacity);
+      if(!isNaN(v)) o*=v;
+    }
+    el=el.parentNode;
+  }
+  return o;
+}
 function drawLinks(){
   var tr=tree.getBoundingClientRect(), s=scale;
   var w=tree.scrollWidth, h=tree.scrollHeight;
@@ -290,9 +342,10 @@ function drawLinks(){
       var cr=cp.getBoundingClientRect(); if(cr.height===0)return;
       var x2=(cr.left-tr.left)/s, y2=((cr.top-tr.top)+cr.height/2)/s;
       var col=(getComputedStyle(cp.parentNode).getPropertyValue('--c')||'#8aa79a').trim();
+      var op=(0.85*effOpacity(cp.parentNode)).toFixed(3);
       var mx=x1+(x2-x1)*0.5;
       paths+='<path d="M '+x1+' '+y1+' C '+mx+' '+y1+', '+mx+' '+y2+', '+x2+' '+y2+
-        '" fill="none" stroke="'+col+'" stroke-width="2.6" stroke-linecap="round" opacity="0.85"/>';
+        '" fill="none" stroke="'+col+'" stroke-width="2.6" stroke-linecap="round" opacity="'+op+'"/>';
     });
   });
   links.innerHTML=paths;
@@ -359,9 +412,13 @@ document.getElementById('zin').addEventListener('click',function(){ zoomAt(map.c
 document.getElementById('zout').addEventListener('click',function(){ zoomAt(map.clientWidth/2,map.clientHeight/2,scale*0.82); });
 document.getElementById('fit').addEventListener('click',function(){ fitReset(); redraw(); });
 document.getElementById('expand').addEventListener('click',function(){
+  tree.querySelectorAll('.node').forEach(function(n){ n.dataset.anim=''; });
+  tree.querySelectorAll('.kids > .node').forEach(clearAnim);
   tree.querySelectorAll('.pill.has').forEach(function(p){ p.parentNode.classList.add('open'); }); redraw(); });
 document.getElementById('collapse').addEventListener('click',function(){
-  tree.querySelectorAll('.node').forEach(function(n){ n.classList.remove('open'); }); root.classList.add('open'); redraw(); });
+  tree.querySelectorAll('.node').forEach(function(n){ n.dataset.anim=''; });
+  tree.querySelectorAll('.kids > .node').forEach(clearAnim);
+  tree.querySelectorAll('.node').forEach(function(n){ if(n!==root) n.classList.remove('open'); }); root.classList.add('open'); redraw(); });
 
 fitReset(); redraw();
 </script>
