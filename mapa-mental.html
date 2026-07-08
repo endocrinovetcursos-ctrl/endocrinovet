@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#e9f1ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="Mapa mental interativo de endocrinopatias veterinárias — clique nos tópicos para abrir, com zoom e navegação.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+<title>Mapa Mental — Endocrinopatias Vet</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{ --dim:#6f8279; --line:#d7e3dd; --green:#0f7a52; }
+  html,body{height:100%}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#26332d;
+    background:#e9f1ec;overflow:hidden;overscroll-behavior:none}
+
+  .top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;gap:9px 14px;flex-wrap:wrap;
+    padding:10px 14px;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);box-shadow:0 2px 12px rgba(0,0,0,.05)}
+  .brand{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:800;color:var(--green)}
+  .cross{width:18px;height:18px;border-radius:5px;background:linear-gradient(160deg,#2fbe86,#0e8c5a);position:relative;box-shadow:0 1px 5px rgba(15,140,90,.45)}
+  .cross::before,.cross::after{content:"";position:absolute;background:#fff;border-radius:1px}
+  .cross::before{left:7.5px;top:3.5px;width:3px;height:11px}
+  .cross::after{top:7.5px;left:3.5px;width:11px;height:3px}
+  .spacer{flex:1}
+  .legend{display:flex;gap:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+  .lg{display:inline-flex;align-items:center;gap:6px}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--green);font-family:inherit;font-weight:700;
+    font-size:12.5px;padding:7px 11px;border-radius:10px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .btn:active{transform:scale(.96)}
+
+  .map{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:grab;
+    background-color:#e9f1ec;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='132' height='132' viewBox='0 0 132 132'%3E%3Cg fill='%230f7a52' opacity='0.05'%3E%3Cellipse cx='40' cy='50' rx='8' ry='11'/%3E%3Cellipse cx='56' cy='42' rx='8' ry='12'/%3E%3Cellipse cx='73' cy='42' rx='8' ry='12'/%3E%3Cellipse cx='89' cy='50' rx='8' ry='11'/%3E%3Cellipse cx='64' cy='76' rx='21' ry='18'/%3E%3C/g%3E%3C/svg%3E");background-size:150px 150px}
+  .map.drag{cursor:grabbing}
+  .tree{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;width:max-content}
+  svg.links{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
+
+  .node{display:flex;align-items:center;gap:46px}
+  .kids{display:none;flex-direction:column;gap:13px;align-items:flex-start}
+  .node.open>.kids{display:flex}
+  .kids>.node{transform-origin:left center;will-change:transform,opacity}
+
+  .pill{position:relative;z-index:2;user-select:none;border-radius:12px;font-weight:700;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:8px}
+  .pill.has{cursor:pointer}
+  .tog{font-size:.72em;opacity:.68;transition:transform .22s;display:inline-block}
+  .node.open>.pill .tog{transform:rotate(90deg)}
+  .count{font-size:.68em;opacity:.5;font-weight:800}
+
+  .d0{font-size:17.5px;padding:13px 22px;color:#fff;font-weight:800;letter-spacing:.2px;border-radius:14px;
+    background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 55%),linear-gradient(158deg,#149c69,#0b6244);
+    box-shadow:0 12px 26px rgba(11,80,55,.36),0 2px 5px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.5)}
+  .d0 small{font-weight:500;opacity:.78;font-size:.6em;letter-spacing:0}
+  .d1{font-size:15px;padding:11px 18px;color:#fff;border-radius:12px;letter-spacing:.2px;
+    background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 55%),var(--c);
+    box-shadow:0 10px 20px rgba(28,42,36,.28),0 1px 3px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.38);text-shadow:0 1px 1px rgba(0,0,0,.2)}
+  .d2{font-size:13.5px;padding:10px 15px;font-weight:700;color:#25322c;border-radius:10px;
+    background:linear-gradient(180deg,#ffffff,#eef4f0);border:1px solid var(--line);border-left:4px solid var(--c);
+    box-shadow:0 6px 15px rgba(28,42,36,.14),inset 0 1px 0 #fff}
+  .d3{font-size:12.8px;padding:8px 13px;font-weight:500;color:#3a4a42;max-width:330px;white-space:normal;line-height:1.4;border-radius:9px;
+    background:linear-gradient(180deg,#ffffff,#f3f7f4);border:1px solid #e4ebe6;border-left:3px solid var(--c);
+    box-shadow:0 4px 11px rgba(28,42,36,.11)}
+
+  .zoomctrl{position:fixed;right:14px;bottom:16px;z-index:30;display:flex;flex-direction:column;gap:6px}
+  .zoomctrl button{width:44px;height:44px;border:1px solid var(--line);background:rgba(255,255,255,.96);color:var(--green);
+    font-size:21px;font-weight:700;border-radius:13px;cursor:pointer;box-shadow:0 3px 11px rgba(0,0,0,.13);display:grid;place-items:center}
+  .zoomctrl button:active{transform:scale(.93)}
+  .hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:25;font-size:11.5px;color:var(--dim);
+    background:rgba(255,255,255,.9);padding:6px 13px;border-radius:20px;border:1px solid var(--line);pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  @media (max-width:560px){ .hint{display:none} .brand span.txt{display:none} }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brand"><span class="cross"></span> <span class="txt">Endocrinopatias Vet</span></div>
+  <div class="spacer"></div>
+  <button class="btn" id="expand">Abrir tudo</button>
+  <button class="btn" id="collapse">Fechar tudo</button>
+</div>
+
+<div class="map" id="map">
+  <div class="tree" id="tree"><svg class="links" id="links"></svg></div>
+</div>
+
+<div class="zoomctrl">
+  <button id="zin" aria-label="Aproximar">+</button>
+  <button id="zout" aria-label="Afastar">&minus;</button>
+  <button id="fit" aria-label="Ajustar" style="font-size:17px">&#9974;</button>
+</div>
+
+<div class="hint">Arraste para mover · scroll/pinça para zoom · toque nos tópicos</div>
+
+<script>
+var C = {cush:'#0e9e73', add:'#c6901e', hipo:'#2f6bc0', hiper:'#128a9a', dm:'#9b4a78', ob:'#3aa15a'};
+
+var DATA = {
+  label:'Endocrinopatias', sub:'cães & gatos', children:[
+
+  { label:'Cushing', color:C.cush, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'PU/PD + polifagia',s:'live'},
+      {t:'Abdômen pendular + perda de massa muscular',s:'live'},
+      {t:'Alopecia simétrica que poupa cabeça e extremidades',s:'live'},
+      {t:'Pele fina, comedões, calcinose cutânea',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Leucograma de estresse',s:'live'},
+      {t:'Fosfatase alcalina bem aumentada (corticoide-induzida)',s:'live'},
+      {t:'Eritrocitose + trombocitose',s:'live'},
+      {t:'Hipertrigliceridemia / hipercolesterolemia',s:'live'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'Cortisol basal NÃO fecha o diagnóstico',s:'live'},
+      {t:'Supressão com dexametasona (LDDST) = teste de eleição (mais sensível)',s:'live'},
+      {t:'Estimulação com ACTH = mais específico (usar no paciente doente)',s:'live'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'US: hepatomegalia com aumento de ecogenicidade',s:'live'},
+      {t:'US adrenais: bilateral = hiperplasia; unilateral + atrofia contralateral = neoplasia',s:'live'} ]},
+    { label:'Tratamento', children:[
+      {t:'Trilostano (Vetoril) — 1ª linha; 1–3 mg/kg com alimento',s:'live'},
+      {t:'Adrenalectomia — quando é tumor adrenal',s:'live'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Hipófise-dependente (~85%) × adrenal-dependente (~15%)',s:'live'},
+      {t:'Alopecia hormonal: Cushing × hipotiroidismo',s:'live'},
+      {t:'Nódulo adrenal: cortisol × aldosterona × catecolaminas',s:'live'},
+      {t:'"Falso Cushing": se repila com corticoide, não era',s:'live'},
+      {t:'Complicações: diabetes, mucocele biliar (29×), doença renal',s:'live'} ]} ]},
+
+  { label:'Addison', color:C.add, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'"Grande imitador" — sinais vagos que vão e voltam',s:'live'},
+      {t:'Quadro gastrointestinal (vômito, diarreia, anorexia)',s:'live'},
+      {t:'Hipoglicemia, alterações neurológicas, megaesôfago',s:'live'},
+      {t:'Forma atípica: falta só cortisol → sem alteração de Na/K',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Hiponatremia + hipercalemia',s:'live'},
+      {t:'Hipercalemia → ECG: bradicardia e onda P achatada/ausente',s:'live'},
+      {t:'Azotemia pré-renal + densidade urinária baixa (imita doença renal)',s:'live'},
+      {t:'Acidose metabólica, anemia, hipoalbuminemia e hipocolesterolemia',s:'live'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'Cortisol basal > 2 µg/dL praticamente exclui',s:'live'},
+      {t:'Basal ≤ 2 → obriga estimulação com ACTH (padrão-ouro)',s:'live'} ]},
+    { label:'Tratamento', children:[
+      {t:'Repor glicocorticoide + mineralocorticoide (DOCP/Zycortal ou fludrocortisona)',s:'live'},
+      {t:'Crise: fluido IV + dextrose + dexametasona',s:'live'},
+      {t:'Monitorar Na/K — NÃO usar estimulação com ACTH para acompanhar',s:'live'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Doença renal',s:'live'},
+      {t:'Hepatopatia',s:'live'},
+      {t:'Gastroenterite / megaesôfago',s:'live'} ]} ]},
+
+  { label:'Hipotiroidismo', color:C.hipo, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'Ganho de peso SEM aumento de apetite',s:'live'},
+      {t:'Letargia e intolerância ao frio',s:'live'},
+      {t:'Alopecia bilateral simétrica; bradicardia',s:'live'},
+      {t:'Mito "todo gordinho é hipotiroideu"',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Anemia não regenerativa',s:'live'},
+      {t:'Hipercolesterolemia (~80% dos casos)',s:'live'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'T4 total = triagem (normal praticamente exclui)',s:'live'},
+      {t:'T4 livre por diálise = mais específico',s:'live'},
+      {t:'TSH alto apoia — mas normal não exclui',s:'live'},
+      {t:'Cuidado com o eutiroideu doente (não testar animal doente)',s:'live'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'US cervical: tireoide reduzida/atrófica apoia o diagnóstico',s:'live'} ]},
+    { label:'Tratamento', children:[
+      {t:'Levotiroxina — uso vitalício; 20 µg/kg em jejum',s:'live'},
+      {t:'Monitorar: T4 pós-pílula + TSH (~4 semanas)',s:'live'},
+      {t:'Não melhorou? → dose errada OU diagnóstico errado',s:'live'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Eutiroideu doente (doença sistêmica baixa o T4)',s:'live'},
+      {t:'Obesidade primária',s:'live'},
+      {t:'Fármacos (corticoide, fenobarbital)',s:'pesquisa'} ]} ]},
+
+  { label:'Hipertiroidismo felino', color:C.hiper, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'Perda de peso COM apetite aumentado (chave); gato idoso',s:'pesquisa'},
+      {t:'PU/PD',s:'live'},
+      {t:'Hiperatividade e vocalização',s:'pesquisa'},
+      {t:'Nódulo tireoidiano palpável no pescoço',s:'pesquisa'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Aumento de ALT e fosfatase alcalina (hepatopatia tireotóxica)',s:'pesquisa'},
+      {t:'Azotemia pode estar mascarada — reavaliar o rim após tratar',s:'pesquisa'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'T4 total = 1ª linha (faixa de referência varia por laboratório)',s:'confirmar'},
+      {t:'~10% têm T4 total normal — não exclui',s:'pesquisa'},
+      {t:'T4 livre quando o T4 total está borderline',s:'pesquisa'} ]},
+    { label:'Exames de imagem', children:[
+      {t:'Cintilografia (Tc-99m): padrão pré-radioiodo e tecido ectópico',s:'pesquisa'},
+      {t:'Ecocardiograma: cardiomiopatia tireotóxica',s:'pesquisa'} ]},
+    { label:'Tratamento', children:[
+      {t:'Metimazol 1,25–2,5 mg/gato a cada 12h (oral ou transdérmico)',s:'pesquisa'},
+      {t:'Radioiodo (I-131) = tratamento curativo de escolha',s:'pesquisa'},
+      {t:'Tireoidectomia; ou dieta restrita em iodo (y/d)',s:'pesquisa'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Doença renal crônica (mascarada pelo hipertireoidismo)',s:'pesquisa'},
+      {t:'Diabetes mellitus',s:'pesquisa'},
+      {t:'Doença gastrointestinal / linfoma',s:'pesquisa'},
+      {t:'Acromegalia',s:'live'} ]} ]},
+
+  { label:'Diabetes + cetoacidose', color:C.dm, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'PU/PD, polifagia e perda de peso',s:'live'},
+      {t:'Cetoacidose (CAD): anorexia, vômito, hálito cetônico',s:'live'},
+      {t:'Gatilho da CAD: cetonúria + hiporexia no diabético',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Diagnóstico: hiperglicemia + glicosúria (os DOIS)',s:'live'},
+      {t:'Cetonúria na fita = sinal de cetoacidose',s:'live'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'DM é diagnóstico clínico-laboratorial — não tem teste de estímulo',s:'live'},
+      {t:'Frutosamina: confirma hiperglicemia crônica (normal = estresse no gato)',s:'pesquisa'} ]},
+    { label:'Tratamento', children:[
+      {t:'Insulina: NPH no cão; glargina ou PZI no gato',s:'pesquisa'},
+      {t:'Manejo da insulina: fora da geladeira, homogeneizar rolando (não chacoalhar), seringa própria, gradil costal',s:'live'},
+      {t:'Mau controle? Primeiro cheque o manejo e a técnica de aplicação',s:'live'},
+      {t:'Monitoramento: curvas glicêmicas / FreeStyle Libre (LibreView)',s:'live'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Hiperglicemia por estresse (gato) — transitória',s:'pesquisa'},
+      {t:'DM secundário: HAC (cão), acromegalia/hipertireoidismo (gato), diestro',s:'pesquisa'} ]} ]},
+
+  { label:'Obesidade', color:C.ob, children:[
+    { label:'Sinais clínicos', children:[
+      {t:'Score de condição corporal 1–9 (ideal 5) — sempre avaliar, não é só o peso',s:'live'},
+      {t:'No obeso: some a cintura (vista de cima) e a gordura cobre o gradil costal (costelas difíceis de palpar)',s:'live'},
+      {t:'Vista de lado: perde a reentrância abdominal — o abdômen fica reto/pendular',s:'live'} ]},
+    { label:'Alterações laboratoriais', children:[
+      {t:'Base mínima de dados (hemograma, bioquímicos, urina) antes de pensar em endócrino',s:'live'},
+      {t:'Colesterol/triglicérides: colesterol alto sugere hipotiroidismo',s:'live'} ]},
+    { label:'Exames hormonais', children:[
+      {t:'NÃO testar tireoide de cara — "todo gordinho é hipotiroideu" é MITO',s:'live'},
+      {t:'Prevalência: obesidade ~40–50% × hipotiroidismo <3%',s:'live'},
+      {t:'Cuidado com o eutiroideu doente: doença sistêmica baixa o T4 (falso positivo)',s:'live'},
+      {t:'Se investigar: hipotiroidismo = T4 livre baixo + TSH alto',s:'pesquisa'},
+      {t:'Cushing: só se houver outros sintomas',s:'pesquisa'} ]},
+    { label:'Tratamento', children:[
+      {t:'Dieta é a 1ª linha — antes de investigar endócrino',s:'live'},
+      {t:'Ração coadjuvante (hipocalórica, alta fibra, enriquecida) ≠ ração light',s:'live'},
+      {t:'Calcular a necessidade energética; peso meta = atual −20% — não deixar à vontade',s:'live'},
+      {t:'Meta: perder ~1–2% do peso por semana',s:'live'},
+      {t:'Não emagreceu? Revise o manejo (pesar a ração, quem dá, outro pet roubando) antes de restringir mais',s:'live'} ]},
+    { label:'Diag. diferenciais', children:[
+      {t:'Excesso alimentar / sedentarismo (o "OBOB") — mais comum',s:'live'},
+      {t:'Hipotiroidismo (cão)',s:'live'},
+      {t:'Cushing (redistribuição de gordura)',s:'live'},
+      {t:'Gato obeso ≠ hipertireoideo (hiper = perda de peso)',s:'pesquisa'} ]} ]}
+
+]};
+
+var tree=document.getElementById('tree'), links=document.getElementById('links'), map=document.getElementById('map');
+
+function build(data,depth){
+  var node=document.createElement('div'); node.className='node';
+  var pill=document.createElement('div'); pill.className='pill d'+depth;
+  var kids=(data.children&&data.children.length)?data.children:null;
+  if(depth===1 && data.color) node.style.setProperty('--c',data.color);
+
+  var html='';
+  if(kids) html+='<span class="tog">▸</span>';
+  if(depth===0) html+=data.label+' <small>'+data.sub+'</small>';
+  else if(data.t!==undefined) html+=data.t;
+  else html+=data.label;
+  if(kids) html+=' <span class="count">'+data.children.length+'</span>';
+  pill.innerHTML=html;
+  node.appendChild(pill);
+
+  if(kids){
+    pill.classList.add('has');
+    var kc=document.createElement('div'); kc.className='kids';
+    data.children.forEach(function(ch){ kc.appendChild(build(ch,depth+1)); });
+    node.appendChild(kc);
+  }
+  return node;
+}
+var root=build(DATA,0); root.classList.add('open'); tree.appendChild(root);
+
+function animateKids(kids, opening, done){
+  var items = kids.querySelectorAll(':scope > .node');
+  var stagger=32, base=300;
+  items.forEach(function(it,i){
+    it.style.transition='none';
+    it.style.opacity = opening ? '0' : '1';
+    it.style.transform = opening ? 'translateX(-16px) scale(.9)' : 'none';
+    void it.offsetWidth;
+    var delay=(opening ? i : (items.length-1-i))*stagger;
+    it.style.transition='opacity .3s ease '+delay+'ms, transform .38s cubic-bezier(.34,1.32,.5,1) '+delay+'ms';
+    it.style.opacity = opening ? '1' : '0';
+    it.style.transform = opening ? 'none' : 'translateX(-16px) scale(.9)';
+  });
+  var startT=null, total=base + items.length*stagger + 90;
+  function loop(t){
+    if(startT===null) startT=t;
+    drawLinks();
+    if(t-startT<total){ requestAnimationFrame(loop); }
+    else {
+      drawLinks();
+      if(opening) items.forEach(function(it){ it.style.transition=''; it.style.transform=''; it.style.opacity=''; });
+      if(done) done();
+    }
+  }
+  requestAnimationFrame(loop);
+}
+function setOpen(node, open){
+  var kids=node.querySelector(':scope > .kids'); if(!kids)return;
+  if(open){
+    node.dataset.anim='opening';
+    if(!node.classList.contains('open')) node.classList.add('open');
+    animateKids(kids,true);
+  } else {
+    if(!node.classList.contains('open')) return;
+    node.dataset.anim='closing';
+    animateKids(kids,false,function(){ if(node.dataset.anim==='closing'){ node.classList.remove('open'); redraw(); } });
+  }
+}
+function clearAnim(n){ n.style.transition=''; n.style.transform=''; n.style.opacity=''; }
+function toggle(pill){ var n=pill.parentNode; if(!n.querySelector(':scope > .kids'))return; setOpen(n, !n.classList.contains('open')); }
+
+// ── conectores ──
+function effOpacity(el){
+  var o=1;
+  while(el && el!==tree){
+    if(el.classList && el.classList.contains('node')){
+      var v=parseFloat(getComputedStyle(el).opacity);
+      if(!isNaN(v)) o*=v;
+    }
+    el=el.parentNode;
+  }
+  return o;
+}
+function drawLinks(){
+  var tr=tree.getBoundingClientRect(), s=scale;
+  var w=tree.scrollWidth, h=tree.scrollHeight;
+  links.setAttribute('width',w); links.setAttribute('height',h);
+  links.style.width=w+'px'; links.style.height=h+'px';
+  var paths='';
+  tree.querySelectorAll('.node.open').forEach(function(n){
+    var kc=n.querySelector(':scope > .kids'); if(!kc)return;
+    var pEl=n.querySelector(':scope > .pill'); var pp=pEl.getBoundingClientRect(); if(pp.height===0)return;
+    var x1=(pp.right-tr.left)/s, y1=((pp.top-tr.top)+pp.height/2)/s;
+    kc.querySelectorAll(':scope > .node > .pill').forEach(function(cp){
+      var cr=cp.getBoundingClientRect(); if(cr.height===0)return;
+      var x2=(cr.left-tr.left)/s, y2=((cr.top-tr.top)+cr.height/2)/s;
+      var col=(getComputedStyle(cp.parentNode).getPropertyValue('--c')||'#8aa79a').trim();
+      var op=(0.85*effOpacity(cp.parentNode)).toFixed(3);
+      var mx=x1+(x2-x1)*0.5;
+      paths+='<path d="M '+x1+' '+y1+' C '+mx+' '+y1+', '+mx+' '+y2+', '+x2+' '+y2+
+        '" fill="none" stroke="'+col+'" stroke-width="2.6" stroke-linecap="round" opacity="'+op+'"/>';
+    });
+  });
+  links.innerHTML=paths;
+}
+function redraw(){ requestAnimationFrame(drawLinks); setTimeout(drawLinks,70); setTimeout(drawLinks,240); }
+
+// ── pan + zoom (canvas) ──
+var tx=40, ty=100, scale=1, MIN=0.35, MAX=2.6;
+function apply(){ tree.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')'; }
+function zoomAt(cx,cy,ns){
+  ns=Math.max(MIN,Math.min(MAX,ns));
+  var sx=(cx-tx)/scale, sy=(cy-ty)/scale;
+  scale=ns; tx=cx-sx*scale; ty=cy-sy*scale; apply();
+}
+function fitReset(){ scale=1; var rp=root.querySelector(':scope > .pill'); tx=44; ty=Math.round(100-rp.offsetTop); apply(); }
+
+map.addEventListener('wheel',function(e){ e.preventDefault(); zoomAt(e.clientX,e.clientY,scale*(e.deltaY<0?1.12:0.89)); },{passive:false});
+
+var pts=new Map(), tap=null, panLast=null, pinch=null;
+function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+map.addEventListener('pointerdown',function(e){
+  try{ map.setPointerCapture(e.pointerId); }catch(_){}
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===1){
+    tap={pill:(e.target.closest?e.target.closest('.pill.has'):null),x:e.clientX,y:e.clientY,moved:false};
+    panLast={x:e.clientX,y:e.clientY}; map.classList.add('drag');
+  } else if(pts.size===2){
+    tap=null; panLast=null; var a=[]; pts.forEach(function(v){a.push(v);});
+    pinch={d:dist(a[0],a[1]),mx:(a[0].x+a[1].x)/2,my:(a[0].y+a[1].y)/2};
+  }
+});
+map.addEventListener('pointermove',function(e){
+  if(!pts.has(e.pointerId))return;
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size>=2 && pinch){
+    var a=[]; pts.forEach(function(v){a.push(v);});
+    var nd=dist(a[0],a[1]), nmx=(a[0].x+a[1].x)/2, nmy=(a[0].y+a[1].y)/2;
+    tx+=nmx-pinch.mx; ty+=nmy-pinch.my;
+    var ns=Math.max(MIN,Math.min(MAX,scale*(nd/pinch.d)));
+    var sx=(nmx-tx)/scale, sy=(nmy-ty)/scale;
+    scale=ns; tx=nmx-sx*scale; ty=nmy-sy*scale;
+    pinch={d:nd,mx:nmx,my:nmy}; apply();
+  } else if(pts.size===1 && panLast){
+    tx+=e.clientX-panLast.x; ty+=e.clientY-panLast.y; panLast={x:e.clientX,y:e.clientY};
+    if(tap && (Math.abs(e.clientX-tap.x)>8||Math.abs(e.clientY-tap.y)>8)) tap.moved=true;
+    apply();
+  }
+});
+function endPtr(e){
+  if(!pts.has(e.pointerId))return;
+  pts.delete(e.pointerId);
+  if(pts.size===0){
+    map.classList.remove('drag');
+    if(tap && !tap.moved && tap.pill) toggle(tap.pill);
+    tap=null; panLast=null; pinch=null;
+  } else if(pts.size===1){
+    var only=null; pts.forEach(function(v){only=v;}); panLast=only?{x:only.x,y:only.y}:null; pinch=null; tap=null;
+  }
+}
+map.addEventListener('pointerup',endPtr);
+map.addEventListener('pointercancel',endPtr);
+
+document.getElementById('zin').addEventListener('click',function(){ zoomAt(map.clientWidth/2,map.clientHeight/2,scale*1.22); });
+document.getElementById('zout').addEventListener('click',function(){ zoomAt(map.clientWidth/2,map.clientHeight/2,scale*0.82); });
+document.getElementById('fit').addEventListener('click',function(){ fitReset(); redraw(); });
+document.getElementById('expand').addEventListener('click',function(){
+  tree.querySelectorAll('.node').forEach(function(n){ n.dataset.anim=''; });
+  tree.querySelectorAll('.kids > .node').forEach(clearAnim);
+  tree.querySelectorAll('.pill.has').forEach(function(p){ p.parentNode.classList.add('open'); }); redraw(); });
+document.getElementById('collapse').addEventListener('click',function(){
+  tree.querySelectorAll('.node').forEach(function(n){ n.dataset.anim=''; });
+  tree.querySelectorAll('.kids > .node').forEach(clearAnim);
+  tree.querySelectorAll('.node').forEach(function(n){ if(n!==root) n.classList.remove('open'); }); root.classList.add('open'); redraw(); });
+
+fitReset(); redraw();
+</script>
+</body>
+</html>
